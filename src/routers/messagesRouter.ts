@@ -3,11 +3,12 @@ import express, { Router } from 'express';
 
 // Files
 import { messagesPostController, messagesGetAllController, messagesGetSpecificController, messagesPutController, messagesDeleteController } from '../controllers/messagesController.ts';
+import { authMiddleware } from '../middlewares/authMiddleware.ts';
 
 const messagesRoute: Router = express.Router();
 
 // Create | Post
-messagesRoute.post('/', messagesPostController);
+messagesRoute.post('/', authMiddleware, messagesPostController);
 
 // Read | Get
 // Get All
@@ -17,9 +18,9 @@ messagesRoute.get('/', messagesGetAllController);
 messagesRoute.get('/:groupId', messagesGetSpecificController);
 
 // Update | Put
-messagesRoute.put('/:groupId', messagesPutController);
+messagesRoute.put('/:id', authMiddleware, messagesPutController);
 
 // Delete | Delete
-messagesRoute.delete('/:groupId', messagesDeleteController);
+messagesRoute.delete('/:id', authMiddleware, messagesDeleteController);
 
 export default messagesRoute;

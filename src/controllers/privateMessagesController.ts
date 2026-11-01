@@ -9,10 +9,10 @@ import { error } from "node:console";
 // Create | Post
 export const privateMessagesPostController = async (req: Request, res: Response) => {
     try {
-        const sender_id  = req.user.id
+        const senderId  = req.user.id
         const { recipient_id, content } = req.body;
 
-        if (sender_id === recipient_id) {
+        if (senderId === recipient_id) {
             return res.status(StatusCodes.BAD_REQUEST).json({
                 error: 'You cannot send a private message to yourself.'
             });
@@ -20,7 +20,7 @@ export const privateMessagesPostController = async (req: Request, res: Response)
         
         const [result]: any = await pool.query(
             'INSERT INTO tb_private_messages (sender_id, recipient_id, content) VALUES (?, ?, ?)',
-            [sender_id, recipient_id, content]
+            [senderId, recipient_id, content]
         );
 
         res.status(StatusCodes.CREATED).json({
@@ -62,7 +62,7 @@ export const privateMessagesGetSpecificController = async (req: Request, res: Re
             ORDER BY created_at ASC`,
             [userId, otherUserId, otherUserId, userId]
         );
-        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(rows);
+        res.status(StatusCodes.OK).json(rows);
     } catch (error){
         res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
             error: (error as Error).message
@@ -73,11 +73,12 @@ export const privateMessagesGetSpecificController = async (req: Request, res: Re
 // Update | Put
 export const privateMessagesPutController = async (req: Request, res: Response) => {
     try {
+        const senderId = req.user.id;
         const { id } = req.params;
         const { content } = req.body;
         const [result]: any = await pool.query(
-            'UPDATE tb_private_messages SET content = ? WHERE id = ?',
-            [content, id]
+            'UPDATE tb_private_messages SET content = ? WHERE sender_id = ? AND id = ?',
+            [content, senderId, id]
         );
 
         if (result.affectedRows === 0) {
@@ -99,10 +100,11 @@ export const privateMessagesPutController = async (req: Request, res: Response) 
 // Delete | Delete
 export const privateMessagesDeleteController = async (req: Request, res: Response) => {
     try {
+        const senderId = req.user.id;
         const { id } = req.params;
         const [result]: any = await pool.query(
-            'DELETE FROM tb_private_messages WHERE id = ?',
-            [id]
+            'DELETE FROM tb_private_messages WHERE sender_id = ? AND id = ?',
+            [senderId, id]
         );
 
         if (result.affectedRows === 0) {
@@ -115,6 +117,8 @@ export const privateMessagesDeleteController = async (req: Request, res: Respons
             message: 'Private message deleted successfully.'
         });
     } catch (error) {
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
         error: (error as Error).message
+        });
     }
 };

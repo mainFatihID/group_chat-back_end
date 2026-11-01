@@ -7,12 +7,13 @@ import pool from '../db/index.ts';
 
 // Create | Post
 export const messagesPostController = async (req: Request, res: Response) => {
-  try {
-    const { sender_id, room_id, content } = req.body;
+  try { 
+    const senderId = req.user.id;
+    const { room_id, content } = req.body;
 
     const [membership]: any = await pool.query(
       'SELECT * FROM tb_group_members WHERE user_id = ? AND group_id = ?',
-      [sender_id, room_id]
+      [senderId, room_id]
     );
 
     if (!membership || membership.length === 0) {
@@ -23,7 +24,7 @@ export const messagesPostController = async (req: Request, res: Response) => {
 
     const [result]: any = await pool.query(
       'INSERT INTO tb_messages (sender_id, room_id, content) VALUES (?, ?, ?)',
-      [sender_id, room_id, content]
+      [senderId, room_id, content]
     );
 
     res.status(StatusCodes.CREATED).json({
@@ -71,12 +72,13 @@ export const messagesGetSpecificController = async (req: Request, res: Response)
 
 // Update | Put
 export const messagesPutController = async (req: Request, res: Response) => {
-  try {
+  try { 
+    const senderId = req.user.id;
     const { id } = req.params;
     const { content } = req.body;
     const [result]: any = await pool.query(
-      'UPDATE tb_messages SET content = ? WHERE id = ?',
-      [content, id]
+      'UPDATE tb_messages SET content = ? WHERE sender_id = ? AND id = ?',
+      [content, senderId, id]
     );
 
     if (result.affectedRows === 0) {
@@ -95,10 +97,11 @@ export const messagesPutController = async (req: Request, res: Response) => {
 // Delete | Delete
 export const messagesDeleteController = async (req: Request, res: Response) => {
   try {
-    const {id} = req.params;
+    const senderId = req.user.id;
+    const { id } = req.params;
     const [result]: any = await pool.query(
-      'DELETE FROM tb_messages WHERE id = ?',
-      [id]
+      'DELETE FROM tb_messages WHERE sender_id = ? AND id = ?',
+      [senderId, id]
     );
 
     if (result.affectedRows === 0) {

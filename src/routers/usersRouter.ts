@@ -2,7 +2,14 @@
 import express, { Router } from 'express';
 
 // Files
-import { usersRegisterPostController, usersLoginPostController, usersGetAllController, usersGetSpecificController, usersGetCurrentController, usersPutController, usersDeleteController } from '../controllers/usersController.ts';
+import { usersRegisterPostController, 
+    usersLoginPostController, 
+    usersGetAllController, 
+    usersGetSpecificController, 
+    usersGetCurrentController, 
+    usersPutController, 
+    usersDeleteController 
+} from '../controllers/usersController.ts';
 import { authMiddleware } from '../middlewares/authMiddleware.ts';
 import upload from '../middlewares/uploadMiddleware.ts';
 

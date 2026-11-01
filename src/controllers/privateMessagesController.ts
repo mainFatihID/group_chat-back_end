@@ -9,11 +9,12 @@ import { error } from "node:console";
 // Create | Post
 export const privateMessagesPostController = async (req: Request, res: Response) => {
     try {
-        const { sender_id, recipient_id, content } = req.body;
+        const sender_id  = req.user.id
+        const { recipient_id, content } = req.body;
 
         if (sender_id === recipient_id) {
             return res.status(StatusCodes.BAD_REQUEST).json({
-                error: 'You cannot send a private message to yourselft.'
+                error: 'You cannot send a private message to yourself.'
             });
         }
         
@@ -50,10 +51,10 @@ export const privateMessagesGetAllController = async (req: Request, res: Respons
 // Read | Get Specific (Conversation between two users)
 export const privateMessagesGetSpecificController = async (req: Request, res: Response) => {
     try {
-        const { userId, otherUserId } = req.params;
+        const userId = req.user.id;
+        const { otherUserId } = req.params;
 
         const [rows] = await pool.query(
-
             `SELECT id, sender_id, recipient_id, content, created_at
             FROM tb_private_messages
             WHERE (sender_id = ? AND recipient_id = ?)

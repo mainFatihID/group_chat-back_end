@@ -1,5 +1,7 @@
+// Packages
 import express, { Router } from 'express';
 
+// Files
 import { groupMembersPostController, groupMembersGetAllController, groupMembersGetSpecificController, groupMembersPutController, groupMembersDeleteController } from '../controllers/groupMembersController.ts';
 import { authMiddleware } from '../middlewares/authMiddleware.ts';
 import { adminMiddleware } from '../middlewares/adminMiddleware.ts';

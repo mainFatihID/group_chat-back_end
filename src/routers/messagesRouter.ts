@@ -1,4 +1,7 @@
+// Packages
 import express, { Router } from 'express';
+
+// Files
 import { messagesPostController, messagesGetAllController, messagesGetSpecificController, messagesPutController, messagesDeleteController } from '../controllers/messagesController.ts';
 
 const messagesRoute: Router = express.Router();

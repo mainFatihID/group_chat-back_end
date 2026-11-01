@@ -1,4 +1,7 @@
+// Packages
 import express, { Router } from 'express';
+
+// Files
 import { groupsPostController, groupsGetAllController, groupsGetSpecificController, groupsPutController, groupsDeleteController } from '../controllers/groupsController.ts';
 
 const groupsRouter: Router = express.Router();

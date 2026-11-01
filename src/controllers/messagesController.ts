@@ -11,7 +11,7 @@ export const messagesPostController = async (req: Request, res: Response) => {
     const { sender_id, room_id, content } = req.body;
 
     const [membership]: any = await pool.query(
-      'SELECT * FROM tb_group_members WHERE user_id - ? AND group_id = ?',
+      'SELECT * FROM tb_group_members WHERE user_id = ? AND group_id = ?',
       [sender_id, room_id]
     );
 

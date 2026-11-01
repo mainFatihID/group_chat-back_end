@@ -4,11 +4,14 @@ import express, { type Express, type Request, type Response } from 'express';
 import cors from 'cors';
 import pc from 'picocolors';
 
-// Files
+// Files (Routers)
 import usersRouter from './routers/usersRouter.ts';
 import groupsRouter from './routers/groupsRouter.ts';
 import groupMembersRouter from './routers/groupMembersRouter.ts';
 import messagesRouter from './routers/messagesRouter.ts';
+import privateMessagesRouter from './routers/privateMessagesRouter.ts';
+
+// Files (Configs)
 import { config } from './configs/dotenvConfig.ts';
 
 const app: Express = express();
@@ -28,6 +31,8 @@ app.use('/api/groups', groupsRouter);
 app.use('/api/group-members', groupMembersRouter);
 
 app.use('/api/messages', messagesRouter);
+
+app.use('/api/private-messages', privateMessagesRouter);
 
 app.get('/', (req: Request, res: Response) => {
   res.json({

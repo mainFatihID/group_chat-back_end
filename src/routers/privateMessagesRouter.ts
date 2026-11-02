@@ -13,19 +13,19 @@ import { authMiddleware } from '../middlewares/authMiddleware.ts';
 
 const privateMessagesRouter: Router = express.Router();
 
-// Create | Post
+// Create (Post)
 privateMessagesRouter.post('/', authMiddleware, privateMessagesPostController);
 
-// Read | Get All 
+// Read (Get All) 
 privateMessagesRouter.get('/', authMiddleware, privateMessagesGetAllController);
 
-// Read | Get Specific (Conversation between two users)
+// Read (Get Specific)
 privateMessagesRouter.get('/:otherUserId', authMiddleware, privateMessagesGetSpecificController);
 
-// Update | Put (by message ID)
+// Update (Put)
 privateMessagesRouter.put('/:id', authMiddleware, privateMessagesPutController);
 
-// Delete | Delete (by message ID)
+// Delete (Delete)
 privateMessagesRouter.delete('/:id', authMiddleware, privateMessagesDeleteController);
 
 export default privateMessagesRouter;

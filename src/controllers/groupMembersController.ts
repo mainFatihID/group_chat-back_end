@@ -1,16 +1,17 @@
 // Packages
-import {type Request, type Response} from 'express';
+import { type Request, type Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 
 // Files
 import pool from '../db/index.ts';
 
-// Create | Post
+// Create (Post)
 export const groupMembersPostController = async (req: Request, res: Response) => {
   try {
     const { user_id, group_id, role } = req.body;
 
     const columns = ['user_id', 'group_id'];
+
     const values: any = [user_id, group_id];
 
     if (role !== undefined && role !== null && role !== '') {
@@ -19,7 +20,8 @@ export const groupMembersPostController = async (req: Request, res: Response) =>
     }
 
     const placeholders = values.map(() => '?').join(', ');
-    const query= `INSERT INTO tb_group_members (${columns.join(', ')}) VALUES (${placeholders})`;
+
+    const query = `INSERT INTO tb_group_members (${columns.join(', ')}) VALUES (${placeholders})`;
 
     const [result]: any = await pool.query(query, values);
 
@@ -34,13 +36,13 @@ export const groupMembersPostController = async (req: Request, res: Response) =>
   }
 };
 
-// Read | Get
-// Get All Group
+// Read (Get All Group)
 export const groupMembersGetAllController = async (req: Request, res: Response) => {
   try {
     const [rows] = await pool.query(
       'SELECT id, user_id, group_id, role FROM tb_group_members'
     );
+
     res.status(StatusCodes.OK).json(rows);
   } catch (error) {
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
@@ -49,7 +51,7 @@ export const groupMembersGetAllController = async (req: Request, res: Response) 
   }
 };
 
-// Get Specific Group
+// Read (Get Specific Group)
 export const groupMembersGetSpecificController = async (req: Request, res: Response) => {
   try {
     const { groupId } = req.params;
@@ -58,6 +60,7 @@ export const groupMembersGetSpecificController = async (req: Request, res: Respo
       'SELECT id, user_id, group_id, role FROM tb_group_members WHERE group_id = ?',
       [groupId]
     );
+
     res.status(StatusCodes.OK).json(rows);
   } catch (error) {
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
@@ -66,11 +69,13 @@ export const groupMembersGetSpecificController = async (req: Request, res: Respo
   }
 };
 
-// Update | Put
+// Update (Put)
 export const groupMembersPutController = async (req: Request, res: Response) => {
   try {
     const { memberId } = req.params;
+    
     const { role } = req.body;
+
     const [result]: any = await pool.query(
       'UPDATE tb_group_members SET role = ? WHERE id = ?',
       [role, memberId]
@@ -89,10 +94,11 @@ export const groupMembersPutController = async (req: Request, res: Response) => 
   }
 };
 
-// Delete | Delete
+// Delete (Delete)
 export const groupMembersDeleteController = async (req: Request, res: Response) => {
   try {
-    const {memberId} = req.params;
+    const { memberId } = req.params;
+
     const [result]: any = await pool.query(
       'DELETE FROM tb_group_members WHERE id = ?',
       [memberId]

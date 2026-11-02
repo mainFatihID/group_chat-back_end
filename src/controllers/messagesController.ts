@@ -5,10 +5,11 @@ import { StatusCodes } from 'http-status-codes';
 // Files
 import pool from '../db/index.ts';
 
-// Create | Post
+// Create (Post)
 export const messagesPostController = async (req: Request, res: Response) => {
   try { 
     const senderId = req.user.id;
+
     const { room_id, content } = req.body;
 
     const [membership]: any = await pool.query(
@@ -38,13 +39,13 @@ export const messagesPostController = async (req: Request, res: Response) => {
   }
 };
 
-// Read | Get
-// Get All
+// Read (Get All)
 export const messagesGetAllController = async (req: Request, res: Response) => {
   try {
     const [rows] = await pool.query(
       'SELECT id, sender_id, room_id, content FROM tb_messages'
     );
+
     res.status(StatusCodes.OK).json(rows);
   } catch (error) {
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
@@ -53,7 +54,7 @@ export const messagesGetAllController = async (req: Request, res: Response) => {
   }
 };
 
-// Get Specific
+// Read (Get Specific)
 export const messagesGetSpecificController = async (req: Request, res: Response) => {
   try {
     const { groupId } = req.params;
@@ -62,6 +63,7 @@ export const messagesGetSpecificController = async (req: Request, res: Response)
       'SELECT sender_id, room_id, content FROM tb_messages WHERE room_id = ?',
       [groupId]
     );
+
     res.status(StatusCodes.OK).json(rows);
   } catch (error) {
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
@@ -70,12 +72,15 @@ export const messagesGetSpecificController = async (req: Request, res: Response)
   }
 };
 
-// Update | Put
+// Update (Put)
 export const messagesPutController = async (req: Request, res: Response) => {
   try { 
     const senderId = req.user.id;
+
     const { id } = req.params;
+    
     const { content } = req.body;
+
     const [result]: any = await pool.query(
       'UPDATE tb_messages SET content = ? WHERE sender_id = ? AND id = ?',
       [content, senderId, id]
@@ -94,11 +99,13 @@ export const messagesPutController = async (req: Request, res: Response) => {
   }
 };
 
-// Delete | Delete
+// Delete (Delete)
 export const messagesDeleteController = async (req: Request, res: Response) => {
   try {
     const senderId = req.user.id;
+
     const { id } = req.params;
+
     const [result]: any = await pool.query(
       'DELETE FROM tb_messages WHERE sender_id = ? AND id = ?',
       [senderId, id]

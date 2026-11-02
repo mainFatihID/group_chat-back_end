@@ -2,25 +2,29 @@
 import express, { Router } from 'express';
 
 // Files
-import { groupsPostController, groupsGetAllController, groupsGetSpecificController, groupsPutController, groupsDeleteController } from '../controllers/groupsController.ts';
+import { groupsPostController, 
+    groupsGetAllController, 
+    groupsGetSpecificController, 
+    groupsPutController, 
+    groupsDeleteController 
+} from '../controllers/groupsController.ts';
+import { authMiddleware } from '../middlewares/authMiddleware.ts';
 
 const groupsRouter: Router = express.Router();
 
-// Create | Post
-groupsRouter.post('/', groupsPostController);
+// Create (Post)
+groupsRouter.post('/', authMiddleware, groupsPostController);
 
-// Read | Get
-// Get All
-groupsRouter.get('/', groupsGetAllController);
+// Read (Get All)
+groupsRouter.get('/', authMiddleware, groupsGetAllController);
 
-// Get Specific
-// Add this under Read | Get in groupsRoute.ts
-groupsRouter.get('/:groupsId', groupsGetSpecificController);
+// Read (Get Specific)
+groupsRouter.get('/:groupId', authMiddleware, groupsGetSpecificController);
 
-// Update | Put
-groupsRouter.put('/:groupsId', groupsPutController);
+// Update (Put)
+groupsRouter.put('/:groupId', authMiddleware, groupsPutController);
 
-// Delete | Delete
-groupsRouter.delete('/:groupsId', groupsDeleteController);
+// Delete (Delete)
+groupsRouter.delete('/:groupId', authMiddleware, groupsDeleteController);
 
 export default groupsRouter;

@@ -2,7 +2,8 @@
 import express, { Router } from 'express';
 
 // Files
-import { usersRegisterPostController, 
+import { 
+    usersRegisterPostController, 
     usersLoginPostController, 
     usersGetAllController, 
     usersGetSpecificController, 
@@ -15,27 +16,25 @@ import upload from '../middlewares/uploadMiddleware.ts';
 
 const usersRouter: Router = express.Router();
 
-// Create | Post
-// Register
+// Create (Register)
 usersRouter.post('/register', upload.single('profile_picture'), usersRegisterPostController);
 
-// Login
+// Create (Login)
 usersRouter.post('/login', usersLoginPostController);
 
-// Read | Get
-// Get All
+// Read (Get All)
 usersRouter.get('/', authMiddleware, usersGetAllController);
 
-// Get Current
+// Read (Get Current)
 usersRouter.get('/me', authMiddleware, usersGetCurrentController);
 
-// Get Specific
+// Get (Specific)
 usersRouter.get('/:userId', authMiddleware, usersGetSpecificController);
 
-// Update | Put
+// Update Put
 usersRouter.put('/:userId', authMiddleware, upload.single('profile_picture'), usersPutController);
 
-// Delete | Delete
+// Delete (Delete)
 usersRouter.delete('/:userId', authMiddleware, usersDeleteController);
 
 export default usersRouter;

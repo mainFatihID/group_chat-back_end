@@ -7,6 +7,7 @@ import bcrypt from 'bcrypt';
 // Files
 import pool from '../db/index.ts';
 import { registerSchema } from '../middlewares/validationMiddleware.ts';
+import type { ResultSetHeader } from 'mysql2';
 
 // Create (Register)
 export const usersRegisterPostController = async (req: Request, res: Response) => {
@@ -121,14 +122,20 @@ export const usersGetAllController = async (req: Request, res: Response) => {
 // Read (Get Specific)
 export const usersGetSpecificController = async (req: Request, res: Response) => {
   try {
-    const { userId } = req.params;
+    const { userId: id } = req.params;
 
-    const [rows] = await pool.query(
+    const [rows]: [any[], any] = await pool.query(
       'SELECT username, email, profile_picture, created_at FROM tb_users WHERE id = ?',
-      [userId]
+      [id]
     );
 
-    res.status(StatusCodes.OK).json(rows);
+    if (!rows || rows.length === 0) {
+      return res.status(StatusCodes.NOT_FOUND).json({
+        error: 'User not found.' 
+      });
+    }
+
+    res.status(StatusCodes.OK).json(rows[0]);
   } catch (error) {
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       error     : (error as Error).message
@@ -136,17 +143,23 @@ export const usersGetSpecificController = async (req: Request, res: Response) =>
   }
 };
 
-// Get (Current)
+// Read (Get Current)
 export const usersGetCurrentController = async (req: Request, res: Response) => {
   try {
-    const userId = req.user.id;
+    const id = req.user?.id;
     
-    const [rows] = await pool.query(
+    const [rows]: [any[], any] = await pool.query(
       'SELECT username, email, profile_picture FROM tb_users WHERE id = ?',
-      [userId]    
+      [id]    
     );
 
-    res.status(StatusCodes.OK).json(rows);
+    if (!rows || rows.length === 0) {
+      return res.status(StatusCodes.NOT_FOUND).json({
+        error: 'User not found.' 
+      });
+    }
+
+    res.status(StatusCodes.OK).json(rows[0]);
   } catch (error) {
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       error: (error as Error).message
@@ -157,7 +170,7 @@ export const usersGetCurrentController = async (req: Request, res: Response) => 
 // Update (Put)
 export const usersPutController = async (req: Request, res: Response) => {
   try {
-    const { userId } = req.params;
+    const { userId: id } = req.params;
 
     const { username } = req.body;
 
@@ -182,12 +195,12 @@ export const usersPutController = async (req: Request, res: Response) => {
       });
     }
 
-    values.push(userId);
+    values.push(id);
 
-    const [result]: any = await pool.query(
+    const [result] = await pool.query(
       `UPDATE tb_users SET ${updates.join(', ')} WHERE id = ?`,
       values
-    );
+    ) as [ResultSetHeader, any];
 
     if (result.affectedRows === 0) {
       return res.status(StatusCodes.NOT_FOUND).json({error: 'User not found'});
@@ -206,12 +219,12 @@ export const usersPutController = async (req: Request, res: Response) => {
 // Delete (Delete)
 export const usersDeleteController = async (req: Request, res: Response) => {
   try {
-    const { userId } = req.params;
+    const { userId: id } = req.params;
 
-    const [result]: any = await pool.query(
+    const [result] = await pool.query(
       'DELETE FROM tb_users WHERE id = ?',
-      [userId]
-    );
+      [id]
+    ) as [ResultSetHeader, any];
 
     if (result.affectedRows === 0) {
       res.status(StatusCodes.NOT_FOUND).json({error: 'User not found'});

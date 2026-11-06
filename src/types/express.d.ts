@@ -3,7 +3,7 @@ import { Request } from "express";
 declare global {
     namespace Express {
         interface Request {
-            user?: any;
+            user?: JwtPayloadUser;
         }
     }
     namespace NodeJS {
@@ -12,6 +12,12 @@ declare global {
             NODE_ENV?: 'development' | 'production' | 'test';
         }
     }
+}
+
+export interface JwtPayloadUser {
+    id: number;
+    email: string;
+    username: string;
 }
 
 export {};

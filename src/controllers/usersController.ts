@@ -1,5 +1,5 @@
 // Packages
-import {type Request, type Response} from 'express';
+import { type Request, type Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
@@ -7,9 +7,9 @@ import bcrypt from 'bcrypt';
 // Files
 import pool from '../db/index.ts';
 import { registerSchema } from '../middlewares/validationMiddleware.ts';
+import type { ResultSetHeader } from 'mysql2';
 
-// Create | Post
-// Register
+// Create (Register)
 export const usersRegisterPostController = async (req: Request, res: Response) => {
   try {
     const validationResult = registerSchema.safeParse(req.body);
@@ -21,9 +21,10 @@ export const usersRegisterPostController = async (req: Request, res: Response) =
       });
     }
 
-    const {username, email, password_hash} = validationResult.data;
+    const { username, email, password_hash } = validationResult.data;
 
     const saltRounds = 10;
+
     const hashedPassword = await bcrypt.hash(password_hash, saltRounds);
     
     const profile_picture = req.file ? req.file.path : null;
@@ -45,10 +46,11 @@ export const usersRegisterPostController = async (req: Request, res: Response) =
   }
 };
 
-// Login
+// Create (Login)
 export const usersLoginPostController = async (req: Request, res: Response) => {
   try {
     const identifier = req.body?.email || req.body?.username || req.body?.identifier;
+    
     const password_hash = req.body?.password_hash;
 
     if (!identifier || !password_hash) {
@@ -104,8 +106,7 @@ export const usersLoginPostController = async (req: Request, res: Response) => {
   }
 };
 
-// Read | Get
-// Get All
+// Read (Get All)
 export const usersGetAllController = async (req: Request, res: Response) => {
   try {
     const [rows] = await pool.query('SELECT id, username, email, profile_picture, created_at FROM tb_users');
@@ -118,15 +119,23 @@ export const usersGetAllController = async (req: Request, res: Response) => {
   }
 };
 
-// Get Specific
+// Read (Get Specific)
 export const usersGetSpecificController = async (req: Request, res: Response) => {
   try {
-    const { userId } = req.params;
+    const { userId: id } = req.params;
 
-    const [rows] = await pool.query('SELECT username, email, profile_picture, created_at FROM tb_users WHERE id = ?',
-    [userId]
+    const [rows]: [any[], any] = await pool.query(
+      'SELECT username, email, profile_picture, created_at FROM tb_users WHERE id = ?',
+      [id]
     );
-    res.status(StatusCodes.OK).json(rows);
+
+    if (!rows || rows.length === 0) {
+      return res.status(StatusCodes.NOT_FOUND).json({
+        error: 'User not found.' 
+      });
+    }
+
+    res.status(StatusCodes.OK).json(rows[0]);
   } catch (error) {
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       error     : (error as Error).message
@@ -134,17 +143,23 @@ export const usersGetSpecificController = async (req: Request, res: Response) =>
   }
 };
 
-// Get | Current
+// Read (Get Current)
 export const usersGetCurrentController = async (req: Request, res: Response) => {
   try {
-    const userId = req.user.id;
+    const id = req.user?.id;
     
-    const [rows] = await pool.query(
+    const [rows]: [any[], any] = await pool.query(
       'SELECT username, email, profile_picture FROM tb_users WHERE id = ?',
-      [userId]    
+      [id]    
     );
 
-    res.status(StatusCodes.OK).json(rows);
+    if (!rows || rows.length === 0) {
+      return res.status(StatusCodes.NOT_FOUND).json({
+        error: 'User not found.' 
+      });
+    }
+
+    res.status(StatusCodes.OK).json(rows[0]);
   } catch (error) {
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       error: (error as Error).message
@@ -152,11 +167,13 @@ export const usersGetCurrentController = async (req: Request, res: Response) => 
   }
 };
 
-// Update | Put
+// Update (Put)
 export const usersPutController = async (req: Request, res: Response) => {
   try {
-    const {userId} = req.params;
-    const {username} = req.body;
+    const { userId: id } = req.params;
+
+    const { username } = req.body;
+
     const profile_picture = req.file ? req.file.path : undefined;
 
     const updates: string[] = [];
@@ -178,12 +195,12 @@ export const usersPutController = async (req: Request, res: Response) => {
       });
     }
 
-    values.push(userId);
+    values.push(id);
 
-    const [result]: any = await pool.query(
+    const [result] = await pool.query(
       `UPDATE tb_users SET ${updates.join(', ')} WHERE id = ?`,
       values
-    );
+    ) as [ResultSetHeader, any];
 
     if (result.affectedRows === 0) {
       return res.status(StatusCodes.NOT_FOUND).json({error: 'User not found'});
@@ -199,14 +216,15 @@ export const usersPutController = async (req: Request, res: Response) => {
   }
 };
 
-// Delete | Delete
+// Delete (Delete)
 export const usersDeleteController = async (req: Request, res: Response) => {
   try {
-    const {userId} = req.params;
-    const [result]: any = await pool.query(
+    const { userId: id } = req.params;
+
+    const [result] = await pool.query(
       'DELETE FROM tb_users WHERE id = ?',
-      [userId]
-    );
+      [id]
+    ) as [ResultSetHeader, any];
 
     if (result.affectedRows === 0) {
       res.status(StatusCodes.NOT_FOUND).json({error: 'User not found'});

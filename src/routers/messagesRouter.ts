@@ -2,24 +2,31 @@
 import express, { Router } from 'express';
 
 // Files
-import { messagesPostController, messagesGetAllController, messagesGetSpecificController, messagesPutController, messagesDeleteController } from '../controllers/messagesController.ts';
+import { 
+    messagesPostController, 
+    messagesGetAllController, 
+    messagesGetSpecificController, 
+    messagesPutController, 
+    messagesDeleteController 
+
+} from '../controllers/messagesController.ts';
+import { authMiddleware } from '../middlewares/authMiddleware.ts';
 
 const messagesRoute: Router = express.Router();
 
-// Create | Post
-messagesRoute.post('/', messagesPostController);
+// Create (Post)
+messagesRoute.post('/', authMiddleware, messagesPostController);
 
-// Read | Get
-// Get All
-messagesRoute.get('/', messagesGetAllController);
+// Read (Get All)
+messagesRoute.get('/', authMiddleware, messagesGetAllController);
 
-// Get Specific
-messagesRoute.get('/:groupId', messagesGetSpecificController);
+// Read (Get Specific)
+messagesRoute.get('/:groupId', authMiddleware, messagesGetSpecificController);
 
-// Update | Put
-messagesRoute.put('/:groupId', messagesPutController);
+// Update (Put)
+messagesRoute.put('/:id', authMiddleware, messagesPutController);
 
-// Delete | Delete
-messagesRoute.delete('/:groupId', messagesDeleteController);
+// Delete (Delete)
+messagesRoute.delete('/:id', authMiddleware, messagesDeleteController);
 
 export default messagesRoute;

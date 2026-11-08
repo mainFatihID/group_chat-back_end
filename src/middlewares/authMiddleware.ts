@@ -1,6 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
-import jwt from 'jsonwebtoken';
+import jwt, { type JwtPayload } from 'jsonwebtoken';
+import type { JwtPayloadUser } from "../types/express.js";
 
 export function authMiddleware (req: Request, res: Response, next: NextFunction) {
     if (!req.headers?.authorization) {
@@ -27,7 +28,7 @@ export function authMiddleware (req: Request, res: Response, next: NextFunction)
 
     try {
         const decoded = jwt.verify(token, jwtSecret)
-        req.user = decoded
+        req.user = decoded as JwtPayloadUser
 
         return next()
     } catch (error) {

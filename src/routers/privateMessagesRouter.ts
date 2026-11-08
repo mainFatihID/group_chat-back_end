@@ -9,22 +9,23 @@ import {
     privateMessagesPutController,
     privateMessagesDeleteController
 } from '../controllers/privateMessagesController.ts';
+import { authMiddleware } from '../middlewares/authMiddleware.ts';
 
 const privateMessagesRouter: Router = express.Router();
 
-// Create | Post
-privateMessagesRouter.post('/', privateMessagesPostController);
+// Create (Post)
+privateMessagesRouter.post('/', authMiddleware, privateMessagesPostController);
 
-// Read | Get All 
-privateMessagesRouter.get('/', privateMessagesGetAllController);
+// Read (Get All) 
+privateMessagesRouter.get('/', authMiddleware, privateMessagesGetAllController);
 
-// Read | Get Specific (Conversation between two users)
-privateMessagesRouter.get('/:userId/:otherUserId', privateMessagesGetSpecificController);
+// Read (Get Specific)
+privateMessagesRouter.get('/:otherUserId', authMiddleware, privateMessagesGetSpecificController);
 
-// Update | Put (by message ID)
-privateMessagesRouter.put('/:id', privateMessagesPutController);
+// Update (Put)
+privateMessagesRouter.put('/:id', authMiddleware, privateMessagesPutController);
 
-// Delete | Delete (by message ID)
-privateMessagesRouter.delete('/:id', privateMessagesDeleteController);
+// Delete (Delete)
+privateMessagesRouter.delete('/:id', authMiddleware, privateMessagesDeleteController);
 
 export default privateMessagesRouter;

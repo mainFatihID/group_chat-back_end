@@ -2,26 +2,30 @@
 import express, { Router } from 'express';
 
 // Files
-import { groupMembersPostController, groupMembersGetAllController, groupMembersGetSpecificController, groupMembersPutController, groupMembersDeleteController } from '../controllers/groupMembersController.ts';
+import { groupMembersPostController, 
+    groupMembersGetAllController, 
+    groupMembersGetSpecificController, 
+    groupMembersPutController, 
+    groupMembersDeleteController 
+} from '../controllers/groupMembersController.ts';
 import { authMiddleware } from '../middlewares/authMiddleware.ts';
 import { adminMiddleware } from '../middlewares/adminMiddleware.ts';
 
 const groupMembersRoute: Router = express.Router();
 
-// Create | Post
+// Create (Post)
 groupMembersRoute.post('/', authMiddleware, adminMiddleware, groupMembersPostController);
 
-// Read | Get
-// From All Group
-groupMembersRoute.get('/', groupMembersGetAllController);
+// Read (All Group)
+groupMembersRoute.get('/', authMiddleware, groupMembersGetAllController);
 
-// From Specific Group
-groupMembersRoute.get('/:groupId', groupMembersGetSpecificController);
+// Read (Specific Group)
+groupMembersRoute.get('/:groupId', authMiddleware, groupMembersGetSpecificController);
 
-// Update | Put
+// Update (Put)
 groupMembersRoute.put('/:memberId', authMiddleware, adminMiddleware, groupMembersPutController);
 
-// Delete | Delete
+// Delete (Delete)
 groupMembersRoute.delete('/:memberId', authMiddleware, adminMiddleware, groupMembersDeleteController);
 
 export default groupMembersRoute;

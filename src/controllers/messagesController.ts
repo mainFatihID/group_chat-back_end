@@ -4,15 +4,18 @@ import { StatusCodes } from 'http-status-codes';
 
 // Files
 import pool from '../db/index.ts';
+import { json } from 'zod';
 
-// Create | Post
+// Create (Post)
 export const messagesPostController = async (req: Request, res: Response) => {
-  try {
-    const { sender_id, room_id, content } = req.body;
+  try { 
+    const senderId = req.user?.id;
+
+    const { room_id, content } = req.body;
 
     const [membership]: any = await pool.query(
       'SELECT * FROM tb_group_members WHERE user_id = ? AND group_id = ?',
-      [sender_id, room_id]
+      [senderId, room_id]
     );
 
     if (!membership || membership.length === 0) {
@@ -23,7 +26,7 @@ export const messagesPostController = async (req: Request, res: Response) => {
 
     const [result]: any = await pool.query(
       'INSERT INTO tb_messages (sender_id, room_id, content) VALUES (?, ?, ?)',
-      [sender_id, room_id, content]
+      [senderId, room_id, content]
     );
 
     res.status(StatusCodes.CREATED).json({
@@ -37,13 +40,13 @@ export const messagesPostController = async (req: Request, res: Response) => {
   }
 };
 
-// Read | Get
-// Get All
+// Read (Get All)
 export const messagesGetAllController = async (req: Request, res: Response) => {
   try {
     const [rows] = await pool.query(
       'SELECT id, sender_id, room_id, content FROM tb_messages'
     );
+
     res.status(StatusCodes.OK).json(rows);
   } catch (error) {
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
@@ -52,16 +55,34 @@ export const messagesGetAllController = async (req: Request, res: Response) => {
   }
 };
 
-// Get Specific
+// Read (Get Specific)
 export const messagesGetSpecificController = async (req: Request, res: Response) => {
   try {
+    const userId = req.user?.id;
+
     const { groupId } = req.params;
+
+    const [membership]: any = await pool.query(
+      `
+        SELECT role FROM tb_group_members WHERE user_id = ? AND group_id = ?
+      `,
+      [userId, groupId]
+    );
+
+    if ((membership as any[]).length === 0) {
+      return res.status(StatusCodes.FORBIDDEN).json({
+        error: 'Access denied: You are not a member of this group.'
+      });
+    }
 
     const [rows] = await pool.query(
       'SELECT sender_id, room_id, content FROM tb_messages WHERE room_id = ?',
       [groupId]
     );
-    res.status(StatusCodes.OK).json(rows);
+
+    res.status(StatusCodes.OK).json({
+      messages: rows
+    });
   } catch (error) {
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       error: (error as Error).message
@@ -69,14 +90,18 @@ export const messagesGetSpecificController = async (req: Request, res: Response)
   }
 };
 
-// Update | Put
+// Update (Put)
 export const messagesPutController = async (req: Request, res: Response) => {
-  try {
+  try { 
+    const senderId = req.user?.id;
+
     const { id } = req.params;
+    
     const { content } = req.body;
+
     const [result]: any = await pool.query(
-      'UPDATE tb_messages SET content = ? WHERE id = ?',
-      [content, id]
+      'UPDATE tb_messages SET content = ? WHERE sender_id = ? AND id = ?',
+      [content, senderId, id]
     );
 
     if (result.affectedRows === 0) {
@@ -92,13 +117,16 @@ export const messagesPutController = async (req: Request, res: Response) => {
   }
 };
 
-// Delete | Delete
+// Delete (Delete)
 export const messagesDeleteController = async (req: Request, res: Response) => {
   try {
-    const {id} = req.params;
+    const senderId = req.user?.id;
+
+    const { id } = req.params;
+
     const [result]: any = await pool.query(
-      'DELETE FROM tb_messages WHERE id = ?',
-      [id]
+      'DELETE FROM tb_messages WHERE sender_id = ? AND id = ?',
+      [senderId, id]
     );
 
     if (result.affectedRows === 0) {

@@ -1,16 +1,18 @@
 // Packages
-import {type Request, type Response} from 'express';
+import { type Request, type Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 
 // Files
 import pool from '../db/index.ts';
+import { error } from 'node:console';
 
-// Create | Post
+// Create (Post)
 export const groupMembersPostController = async (req: Request, res: Response) => {
   try {
     const { user_id, group_id, role } = req.body;
 
     const columns = ['user_id', 'group_id'];
+
     const values: any = [user_id, group_id];
 
     if (role !== undefined && role !== null && role !== '') {
@@ -19,7 +21,8 @@ export const groupMembersPostController = async (req: Request, res: Response) =>
     }
 
     const placeholders = values.map(() => '?').join(', ');
-    const query= `INSERT INTO tb_group_members (${columns.join(', ')}) VALUES (${placeholders})`;
+
+    const query = `INSERT INTO tb_group_members (${columns.join(', ')}) VALUES (${placeholders})`;
 
     const [result]: any = await pool.query(query, values);
 
@@ -34,13 +37,13 @@ export const groupMembersPostController = async (req: Request, res: Response) =>
   }
 };
 
-// Read | Get
-// Get All Group
+// Read (Get All)
 export const groupMembersGetAllController = async (req: Request, res: Response) => {
   try {
     const [rows] = await pool.query(
       'SELECT id, user_id, group_id, role FROM tb_group_members'
     );
+
     res.status(StatusCodes.OK).json(rows);
   } catch (error) {
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
@@ -49,16 +52,39 @@ export const groupMembersGetAllController = async (req: Request, res: Response) 
   }
 };
 
-// Get Specific Group
+// Read (Get Specific)
 export const groupMembersGetSpecificController = async (req: Request, res: Response) => {
   try {
+    const userId = req.user?.id;
+
     const { groupId } = req.params;
 
+    const [membership]: any = await pool.query(
+      `
+        SELECT role FROM tb_group_members WHERE user_id = ? AND group_id = ?
+      `,
+      [userId, groupId]
+    );
+    
+    if ((membership as any[]).length === 0) {
+      return res.status(StatusCodes.FORBIDDEN).json({
+        error: 'Access denied: You are not a member of this group.'
+      });
+    }
+
     const [rows] = await pool.query(
-      'SELECT id, user_id, group_id, role FROM tb_group_members WHERE group_id = ?',
+      `
+        SELECT m.id, m.user_id, m.group_id, m.role, u.username
+        FROM tb_group_members AS m
+        INNER JOIN tb_users AS u ON u.id = m.user_id
+        WHERE m.group_id = ? 
+      `,
       [groupId]
     );
-    res.status(StatusCodes.OK).json(rows);
+
+    res.status(StatusCodes.OK).json({
+      members: rows
+    });
   } catch (error) {
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       error: (error as Error).message
@@ -66,11 +92,13 @@ export const groupMembersGetSpecificController = async (req: Request, res: Respo
   }
 };
 
-// Update | Put
+// Update (Put)
 export const groupMembersPutController = async (req: Request, res: Response) => {
   try {
     const { memberId } = req.params;
+    
     const { role } = req.body;
+
     const [result]: any = await pool.query(
       'UPDATE tb_group_members SET role = ? WHERE id = ?',
       [role, memberId]
@@ -89,10 +117,11 @@ export const groupMembersPutController = async (req: Request, res: Response) => 
   }
 };
 
-// Delete | Delete
+// Delete (Delete)
 export const groupMembersDeleteController = async (req: Request, res: Response) => {
   try {
-    const {memberId} = req.params;
+    const { memberId } = req.params;
+
     const [result]: any = await pool.query(
       'DELETE FROM tb_group_members WHERE id = ?',
       [memberId]

@@ -59,45 +59,32 @@ export const groupMembersGetSpecificController = async (req: Request, res: Respo
 
     const { groupId } = req.params;
 
-    const [rows] = await pool.query(
-      `
-        SELECT m.id, m.user_id, m.group_id, m.role
-        FROM tb_group_members AS m
-        INNER JOIN tb_users AS u ON u.id = m.user_id
-        WHERE m.group_id = ? 
-      `,
-      [groupId]
-    );
-    const [membership]: any = pool.query(
+    const [membership]: any = await pool.query(
       `
         SELECT role FROM tb_group_members WHERE user_id = ? AND group_id = ?
       `,
       [userId, groupId]
     );
-
-    const userFilter = Array(rows).filter((data: ) => data.user_id === userId)
-
-    if (userFilter.length === 1) {
-      res.status(StatusCodes.OK).json({
-        message: [rows]
-      });
-      return
-    }
-
-    if (!userFilter || userFilter.length === 0) {
-      res.status(StatusCodes.FORBIDDEN).json({
-        error: error
-      });
-      return
-    }
-
+    
     if ((membership as any[]).length === 0) {
       return res.status(StatusCodes.FORBIDDEN).json({
         error: 'Access denied: You are not a member of this group.'
       });
     }
 
-    res.status(StatusCodes.OK).json(rows);
+    const [rows] = await pool.query(
+      `
+        SELECT m.id, m.user_id, m.group_id, m.role, u.username
+        FROM tb_group_members AS m
+        INNER JOIN tb_users AS u ON u.id = m.user_id
+        WHERE m.group_id = ? 
+      `,
+      [groupId]
+    );
+
+    res.status(StatusCodes.OK).json({
+      members: rows
+    });
   } catch (error) {
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       error: (error as Error).message

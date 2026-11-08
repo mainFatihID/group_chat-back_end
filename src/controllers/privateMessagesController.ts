@@ -8,7 +8,7 @@ import pool from "../db/index.ts";
 // Create (Post)
 export const privateMessagesPostController = async (req: Request, res: Response) => {
     try {
-        const senderId  = req.user.id
+        const senderId  = req.user?.id
 
         const { recipient_id, content } = req.body;
 
@@ -52,7 +52,7 @@ export const privateMessagesGetAllController = async (req: Request, res: Respons
 // Read (Get Specific)
 export const privateMessagesGetSpecificController = async (req: Request, res: Response) => {
     try {
-        const userId = req.user.id;
+        const userId = req.user?.id;
 
         const { otherUserId } = req.params;
 
@@ -75,7 +75,7 @@ export const privateMessagesGetSpecificController = async (req: Request, res: Re
 // Update (Put)
 export const privateMessagesPutController = async (req: Request, res: Response) => {
     try {
-        const senderId = req.user.id;
+        const senderId = req.user?.id;
 
         const { id } = req.params;
         
@@ -105,7 +105,7 @@ export const privateMessagesPutController = async (req: Request, res: Response) 
 // Delete (Delete)
 export const privateMessagesDeleteController = async (req: Request, res: Response) => {
     try {
-        const senderId = req.user.id;
+        const senderId = req.user?.id;
 
         const { id } = req.params;
 

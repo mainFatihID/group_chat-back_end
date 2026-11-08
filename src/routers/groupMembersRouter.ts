@@ -17,10 +17,10 @@ const groupMembersRoute: Router = express.Router();
 groupMembersRoute.post('/', authMiddleware, adminMiddleware, groupMembersPostController);
 
 // Read (All Group)
-groupMembersRoute.get('/', groupMembersGetAllController);
+groupMembersRoute.get('/', authMiddleware, groupMembersGetAllController);
 
 // Read (Specific Group)
-groupMembersRoute.get('/:groupId', groupMembersGetSpecificController);
+groupMembersRoute.get('/:groupId', authMiddleware, groupMembersGetSpecificController);
 
 // Update (Put)
 groupMembersRoute.put('/:memberId', authMiddleware, adminMiddleware, groupMembersPutController);

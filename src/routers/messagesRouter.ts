@@ -18,10 +18,10 @@ const messagesRoute: Router = express.Router();
 messagesRoute.post('/', authMiddleware, messagesPostController);
 
 // Read (Get All)
-messagesRoute.get('/', messagesGetAllController);
+messagesRoute.get('/', authMiddleware, messagesGetAllController);
 
 // Read (Get Specific)
-messagesRoute.get('/:groupId', messagesGetSpecificController);
+messagesRoute.get('/:groupId', authMiddleware, messagesGetSpecificController);
 
 // Update (Put)
 messagesRoute.put('/:id', authMiddleware, messagesPutController);

@@ -4,6 +4,7 @@ import { StatusCodes } from 'http-status-codes';
 
 // Files
 import pool from '../db/index.ts';
+import { error } from 'node:console';
 
 // Create (Post)
 export const groupMembersPostController = async (req: Request, res: Response) => {
@@ -36,7 +37,7 @@ export const groupMembersPostController = async (req: Request, res: Response) =>
   }
 };
 
-// Read (Get All Group)
+// Read (Get All)
 export const groupMembersGetAllController = async (req: Request, res: Response) => {
   try {
     const [rows] = await pool.query(
@@ -51,15 +52,50 @@ export const groupMembersGetAllController = async (req: Request, res: Response) 
   }
 };
 
-// Read (Get Specific Group)
+// Read (Get Specific)
 export const groupMembersGetSpecificController = async (req: Request, res: Response) => {
   try {
+    const userId = req.user?.id;
+
     const { groupId } = req.params;
 
     const [rows] = await pool.query(
-      'SELECT id, user_id, group_id, role FROM tb_group_members WHERE group_id = ?',
+      `
+        SELECT m.id, m.user_id, m.group_id, m.role
+        FROM tb_group_members AS m
+        INNER JOIN tb_users AS u ON u.id = m.user_id
+        WHERE m.group_id = ? 
+      `,
       [groupId]
     );
+    const [membership]: any = pool.query(
+      `
+        SELECT role FROM tb_group_members WHERE user_id = ? AND group_id = ?
+      `,
+      [userId, groupId]
+    );
+
+    const userFilter = Array(rows).filter((data: ) => data.user_id === userId)
+
+    if (userFilter.length === 1) {
+      res.status(StatusCodes.OK).json({
+        message: [rows]
+      });
+      return
+    }
+
+    if (!userFilter || userFilter.length === 0) {
+      res.status(StatusCodes.FORBIDDEN).json({
+        error: error
+      });
+      return
+    }
+
+    if ((membership as any[]).length === 0) {
+      return res.status(StatusCodes.FORBIDDEN).json({
+        error: 'Access denied: You are not a member of this group.'
+      });
+    }
 
     res.status(StatusCodes.OK).json(rows);
   } catch (error) {

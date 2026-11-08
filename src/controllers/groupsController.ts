@@ -8,7 +8,7 @@ import pool from '../db/index.ts';
 // Create (Post)
 export const groupsPostController = async (req: Request, res: Response) => {
   try {
-    const createdBy = req.user.id;
+    const createdBy = req.user?.id;
 
     const { groupName } = req.body;
 
@@ -36,8 +36,16 @@ export const groupsPostController = async (req: Request, res: Response) => {
 // Read (Get All)
 export const groupsGetAllController = async (req: Request, res: Response) => {
   try {
+    const userId = req.user?.id!;
+
     const [rows] = await pool.query(
-      'SELECT id, group_name, created_by, created_at FROM tb_groups'
+      `
+        SELECT g.id, g.group_name, g.created_by, g.created_at
+        FROM tb_groups AS g
+        INNER JOIN tb_group_members AS m ON g.id = m.group_id
+        WHERE m.user_id = ?
+      `,
+      [userId]
     );
 
     res.status(StatusCodes.OK).json(rows);
@@ -51,24 +59,18 @@ export const groupsGetAllController = async (req: Request, res: Response) => {
 // Read (Get Specific)
 export const groupsGetSpecificController = async (req: Request, res: Response) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user?.id;
 
     const { groupId } = req.params;
 
-    const [memberShip]: any = await pool.query(
-      'SELECT * FROM tb_group_members WHERE user_id = ? AND group_id = ?',
-      [userId, groupId]
-    );
-
-    if (!memberShip || memberShip.length === 0) {
-      return res.status(StatusCodes.NOT_FOUND).json({
-        error: 'Group not found.'
-      });
-    }
-
     const [rows]: any = await pool.query(
-      'SELECT id, group_name, created_by, created_at FROM tb_groups WHERE id = ?',
-      [groupId]
+      `
+        SELECT g.id, g.group_name, g.created_by, g.created_at
+        FROM tb_groups AS g
+        INNER JOIN tb_group_members AS m ON g.id = m.group_id
+        WHERE m.user_id = ? AND g.id = ?
+      `,
+      [userId, groupId]
     );
 
     if (!rows || rows.length === 0) {
@@ -77,7 +79,7 @@ export const groupsGetSpecificController = async (req: Request, res: Response) =
       });
     }
 
-    res.status(StatusCodes.OK).json(rows)
+    res.status(StatusCodes.OK).json(rows[0])
   } catch (error) {
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       error: (error as Error).message
@@ -88,7 +90,7 @@ export const groupsGetSpecificController = async (req: Request, res: Response) =
 // Update (Put)
 export const groupsPutController = async (req: Request, res: Response) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user?.id;
     
     const { groupId } = req.params;
     
@@ -126,7 +128,7 @@ export const groupsPutController = async (req: Request, res: Response) => {
 // Delete (Delete)
 export const groupsDeleteController = async (req: Request, res: Response) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user?.id;
 
     const { groupId } = req.params;
 
